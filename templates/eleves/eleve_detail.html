@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}{{ eleve.prenom }} {{ eleve.nom }} – Fiche élève{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
+  <a class="btn btn-secondary" href="{% url 'eleve_list' %}">← Retour</a>
+  <h1 style="font-size:1.6rem;color:#1e3a5f;">{{ eleve.prenom }} {{ eleve.nom }}</h1>
+  <span class="badge badge-blue" style="font-size:1rem">{{ eleve.scolarite.classe|default:"Classe inconnue" }}</span>
+  <div style="display:flex;gap:.5rem;margin-left:auto">
+    {% if user_role == 'admin' or user_role == 'scolarite' %}
+    <a class="btn btn-primary" href="{% url 'eleve_edit' eleve.pk %}">✏ Modifier</a>
+    {% endif %}
+    {% if user_role == 'admin' %}
+    <a class="btn btn-danger" href="{% url 'eleve_delete' eleve.pk %}">Supprimer</a>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+
+  <!-- Identite -->
+  <div class="card" style="border-left:4px solid #3b82f6">
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
+      <h2 style="margin:0;font-size:1.1rem">Identite &amp; coordonnees</h2>
+      <span class="badge badge-blue" style="font-size:.7rem">Administration</span>
+    </div>
+    <dl>
+      <dt>Nom complet</dt><dd>{{ eleve.prenom }} {{ eleve.nom }}</dd>
+      {% if eleve.date_naissance %}
+      <dt>Date de naissance</dt><dd>{{ eleve.date_naissance|date:"d/m/Y" }}</dd>
+      {% endif %}
+      <dt>Adresse</dt><dd>{{ eleve.adresse|default:"-"|linebreaksbr }}</dd>
+      <dt>Email</dt><dd>{% if eleve.email %}<a href="mailto:{{ eleve.email }}">{{ eleve.email }}</a>{% else %}-{% endif %}</dd>
+      <dt>Telephone</dt><dd>{{ eleve.telephone|default:"-" }}</dd>
+    </dl>
+  </div>
+
+  <!-- Parents – admin, scolarite, vie_scolaire -->
+  {% if user_role == 'admin' or user_role == 'scolarite' or user_role == 'vie_scolaire' %}
+  <div class="card" style="border-left:4px solid #3b82f6">
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
+      <h2 style="margin:0;font-size:1.1rem">Parents / Tuteurs</h2>
+      <span class="badge badge-blue" style="font-size:.7rem">Administration</span>
+    </div>
+    {% for p in eleve.parents.all %}
+      <div style="margin-bottom:.8rem;padding:.8rem;background:#f8fafc;border-radius:8px">
+        <strong>{{ p.prenom }} {{ p.nom }}</strong>
+        <span class="badge badge-green" style="margin-left:.5rem">{{ p.get_lien_display }}</span>
+        <dl style="margin-top:.4rem">
+          {% if p.telephone %}<dt>Tel.</dt><dd>{{ p.telephone }}</dd>{% endif %}
+          {% if p.email %}<dt>Email</dt><dd><a href="mailto:{{ p.email }}">{{ p.email }}</a></dd>{% endif %}
+        </dl>
+      </div>
+    {% empty %}
+      <p style="color:#64748b">Aucun parent renseigne.</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Donnees scolaires – admin, scolarite, professeur, vie_scolaire -->
+  {% if user_role == 'admin' or user_role == 'scolarite' or user_role == 'professeur' or user_role == 'vie_scolaire' %}
+  <div class="card" style="border-left:4px solid #10b981">
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
+      <h2 style="margin:0;font-size:1.1rem">Donnees scolaires</h2>
+      <span class="badge badge-green" style="font-size:.7rem">Professeurs &amp; Scolarite</span>
+    </div>
+    <dl>
+      <dt>Classe</dt><dd>{{ eleve.scolarite.classe|default:"-" }}</dd>
+      <dt>Options</dt><dd>{{ eleve.scolarite.options|default:"-" }}</dd>
+    </dl>
+    <div style="font-size:.75rem;color:#64748b;margin-top:.5rem">Table : eleves_scolarite</div>
+  </div>
+  {% endif %}
+
+  <!-- Donnees de sante – admin, scolarite, infirmier, cantine -->
+  {% if user_role == 'admin' or user_role == 'scolarite' or user_role == 'infirmier' or user_role == 'cantine' %}
+  <div class="card" style="border-left:4px solid #ef4444">
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem;flex-wrap:wrap">
+      <h2 style="margin:0;font-size:1.1rem">Donnees de sante</h2>
+      <span class="badge badge-red" style="font-size:.7rem">Pole medical &amp; Cantine</span>
+    </div>
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:.5rem .75rem;margin-bottom:.8rem;font-size:.78rem;color:#991b1b">
+      Donnees sensibles -- art. 9 RGPD
+    </div>
+    <dl>
+      {% if user_role != 'cantine' %}
+      <dt>Allergies</dt>
+      <dd>{% if eleve.sante.allergies %}<span class="badge badge-red">{{ eleve.sante.allergies }}</span>{% else %}Aucune allergie connue{% endif %}</dd>
+      <dt>Medecin traitant</dt>
+      <dd>
+        {% if eleve.sante.medecin %}
+          {{ eleve.sante.medecin }}{% if eleve.sante.medecin.telephone %} - {{ eleve.sante.medecin.telephone }}{% endif %}
+        {% else %}Non renseigne{% endif %}
+      </dd>
+      {% endif %}
+      {% if user_role == 'admin' or user_role == 'scolarite' or user_role == 'cantine' %}
+      <dt>Habitudes alimentaires</dt>
+      <dd>{{ eleve.sante.habitudes_alimentaires|default:"-" }}</dd>
+      {% endif %}
+    </dl>
+    <div style="font-size:.75rem;color:#64748b;margin-top:.5rem">Table : eleves_sante</div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Bulletin de notes – admin, scolarite, professeur -->
+{% if user_role == 'admin' or user_role == 'scolarite' or user_role == 'professeur' %}
+<div class="card" style="margin-top:1.5rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+    <h2 style="margin:0">Bulletin de notes</h2>
+    <a class="btn btn-primary" href="{% url 'note_create' %}?eleve={{ eleve.pk }}">+ Ajouter une note</a>
+  </div>
+  {% for trimestre, data in notes_par_trimestre.items %}
+    <div style="margin-bottom:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <strong style="color:#1e3a5f">{{ trimestre }}</strong>
+        {% if data.moyenne %}
+          {% with avg=data.moyenne %}
+          <span class="note-pill {% if avg >= 14 %}note-ok{% elif avg >= 10 %}note-avg{% else %}note-bad{% endif %}">
+            Moyenne : {{ avg|floatformat:2 }}/20
+          </span>
+          {% endwith %}
+        {% endif %}
+      </div>
+      {% if data.notes %}
+      <table>
+        <thead><tr><th>Matiere</th><th>Note /20</th><th>Appreciation</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for n in data.notes %}
+          <tr>
+            <td>{{ n.matiere.nom }}</td>
+            <td>
+              <span class="note-pill {% if n.note >= 14 %}note-ok{% elif n.note >= 10 %}note-avg{% else %}note-bad{% endif %}">
+                {{ n.note }}/20
+              </span>
+            </td>
+            <td style="font-style:italic;color:#475569">{{ n.appreciation|default:"-" }}</td>
+            <td style="white-space:nowrap">
+              <a class="btn btn-secondary" style="padding:.25rem .6rem;font-size:.8rem" href="{% url 'note_edit' n.pk %}">Modifier</a>
+              <a class="btn btn-danger" style="padding:.25rem .6rem;font-size:.8rem" href="{% url 'note_delete' n.pk %}">Supprimer</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p style="color:#94a3b8;font-size:.85rem">Aucune note pour ce trimestre.</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

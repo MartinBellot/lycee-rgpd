@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
+  <a class="btn btn-secondary" href="{{ cancel_url }}">← Annuler</a>
+  <h1 style="font-size:1.6rem;color:#1e3a5f;">{{ form_title }}</h1>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  <!-- ── Section Identité ──────────────────────────────────── -->
+  <div class="card" style="margin-bottom:1.5rem;border-left:4px solid #3b82f6">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.2rem;flex-wrap:wrap">
+      <h2 style="margin:0;font-size:1.2rem">🪪 Identité & coordonnées</h2>
+      <span class="badge badge-blue">Accès : Administration</span>
+      <span style="font-size:.78rem;color:#64748b;margin-left:auto">Table : <code>eleves_eleve</code> — art. 6 §1 e RGPD</span>
+    </div>
+    {% for field in id_form %}
+      <div style="margin-bottom:1rem">
+        <label style="display:block;font-weight:600;margin-bottom:.3rem;color:#1e3a5f">
+          {{ field.label }}{% if field.field.required %} <span style="color:#dc2626">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.errors %}<div style="color:#dc2626;font-size:.85rem;margin-top:.25rem">{{ field.errors|join:", " }}</div>{% endif %}
+        {% if field.help_text %}<div style="color:#64748b;font-size:.8rem;margin-top:.2rem">{{ field.help_text }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- ── Section Scolarité ─────────────────────────────────── -->
+  <div class="card" style="margin-bottom:1.5rem;border-left:4px solid #10b981">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.2rem;flex-wrap:wrap">
+      <h2 style="margin:0;font-size:1.2rem">🎒 Données scolaires</h2>
+      <span class="badge badge-green">Accès : Professeurs & Scolarité</span>
+      <span style="font-size:.78rem;color:#64748b;margin-left:auto">Table : <code>eleves_scolarite</code> — art. 6 §1 e RGPD</span>
+    </div>
+    {% for field in sc_form %}
+      <div style="margin-bottom:1rem">
+        <label style="display:block;font-weight:600;margin-bottom:.3rem;color:#1e3a5f">
+          {{ field.label }}{% if field.field.required %} <span style="color:#dc2626">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.errors %}<div style="color:#dc2626;font-size:.85rem;margin-top:.25rem">{{ field.errors|join:", " }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- ── Section Santé ─────────────────────────────────────── -->
+  <div class="card" style="margin-bottom:1.5rem;border-left:4px solid #ef4444">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.8rem;flex-wrap:wrap">
+      <h2 style="margin:0;font-size:1.2rem">🏥 Données de santé</h2>
+      <span class="badge badge-red">Accès restreint : Pôle médical &amp; Cantine</span>
+      <span style="font-size:.78rem;color:#64748b;margin-left:auto">Table : <code>eleves_sante</code> — art. 9 RGPD</span>
+    </div>
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:.75rem;margin-bottom:1rem;font-size:.85rem;color:#991b1b">
+      ⚠ Ces données sont des données sensibles au sens de l'article 9 du RGPD.
+      Leur accès doit être strictement limité aux personnels habilités et leur traitement doit être justifié.
+    </div>
+    {% for field in sa_form %}
+      <div style="margin-bottom:1rem">
+        <label style="display:block;font-weight:600;margin-bottom:.3rem;color:#1e3a5f">
+          {{ field.label }}{% if field.field.required %} <span style="color:#dc2626">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.errors %}<div style="color:#dc2626;font-size:.85rem;margin-top:.25rem">{{ field.errors|join:", " }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+    <button class="btn btn-primary" type="submit">💾 Enregistrer</button>
+    <a class="btn btn-secondary" href="{{ cancel_url }}">Annuler</a>
+  </div>
+</form>
+{% endblock %}

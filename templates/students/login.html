@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion – Portail élèves</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    .login-card {
+      background: #fff; border-radius: 16px; padding: 2.5rem 2rem;
+      width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    }
+    .login-brand { text-align: center; margin-bottom: 2rem; }
+    .login-brand h1 { font-size: 1.5rem; color: #1e3a5f; margin-top: .5rem; }
+    .login-brand .emoji { font-size: 3rem; }
+    .login-brand p { color: #64748b; font-size: .9rem; margin-top: .3rem; }
+
+    .form-group { margin-bottom: 1.2rem; }
+    label { display: block; font-weight: 600; margin-bottom: .4rem; font-size: .9rem; color: #374151; }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: .65rem .9rem; border: 1.5px solid #d1d5db;
+      border-radius: 8px; font-size: .95rem; outline: none;
+      transition: border-color .2s;
+    }
+    input:focus { border-color: #2563eb; }
+
+    .btn-login {
+      width: 100%; padding: .75rem; background: linear-gradient(135deg, #1e3a5f, #2563eb);
+      color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .btn-login:hover { opacity: .9; }
+
+    .error-msg {
+      background: #fee2e2; color: #991b1b; padding: .75rem 1rem;
+      border-radius: 8px; margin-bottom: 1.2rem; font-size: .9rem;
+      border-left: 4px solid #ef4444;
+    }
+
+    .hint { text-align: center; margin-top: 1.5rem; color: #64748b; font-size: .82rem; }
+    .hint a { color: #2563eb; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="emoji">🏫</div>
+      <h1>Lycée RGPD</h1>
+      <p>Portail élèves &amp; parents</p>
+    </div>
+
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    {% if request.GET.effacement == 'ok' %}
+    <div style="background:#d1fae5;color:#065f46;border-radius:8px;padding:.75rem 1rem;
+                font-size:.875rem;margin-bottom:1rem;border-left:4px solid #10b981">
+      ✅ Votre compte a été supprimé avec succès.
+    </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="form-group">
+        <label for="username">Identifiant</label>
+        <input type="text" id="username" name="username" autofocus autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn-login">Se connecter</button>
+    </form>
+
+    <p class="hint">
+      Personnel de l'établissement ?
+      <a href="/admin/login/">Accès administration →</a>
+    </p>
+  </div>
+</body>
+</html>

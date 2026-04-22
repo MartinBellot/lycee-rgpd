@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Lycée – Gestion des élèves{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    nav {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+      color: #fff;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      height: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      flex-wrap: wrap;
+    }
+    nav .brand { font-weight: 700; font-size: 1.2rem; letter-spacing: .5px; white-space:nowrap; }
+    nav a { color: rgba(255,255,255,.85); text-decoration: none; font-size: .9rem; transition: color .2s; white-space:nowrap; }
+    nav a:hover { color: #fff; }
+    nav .spacer { flex: 1; }
+    nav .nav-sep { color: rgba(255,255,255,.3); }
+
+    /* ── Layout ── */
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.08);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #1e3a5f; }
+
+    /* ── Stat tiles ── */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat {
+      background: linear-gradient(135deg, #2563eb, #1e40af);
+      color: #fff;
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      text-align: center;
+    }
+    .stat .value { font-size: 2.2rem; font-weight: 700; }
+    .stat .label { font-size: .8rem; opacity: .85; margin-top: .2rem; }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th { background: #1e3a5f; color: #fff; padding: .65rem 1rem; text-align: left; }
+    td { padding: .6rem 1rem; border-bottom: 1px solid #e2e8f0; }
+    tr:hover td { background: #f7fafc; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: .2em .6em;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-block;
+      padding: .45rem 1rem;
+      border-radius: 6px;
+      font-size: .85rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: filter .15s;
+      border: none;
+      font-family: inherit;
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-secondary { background: #e2e8f0; color: #1a202c; }
+    .btn-danger { background: #ef4444; color: #fff; }
+
+    /* ── Search form ── */
+    .search-bar { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+
+    /* ── Form controls ── */
+    .form-control, .form-select, .form-textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: .5rem .85rem;
+      font-size: .9rem;
+      background: #fff;
+      color: #1a202c;
+      font-family: inherit;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-control:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-check-list { list-style: none; padding: 0; }
+    .form-check-list li { margin-bottom: .35rem; }
+    .form-check-list label { display: flex; align-items: center; gap: .5rem; cursor: pointer; font-size: .9rem; }
+    .form-check-list input[type="checkbox"] { width: 16px; height: 16px; accent-color: #2563eb; }
+    .search-bar .form-control, .search-bar .form-select { width: auto; }
+
+    /* ── Form field wrapper ── */
+    .field-group { margin-bottom: 1.2rem; }
+    .field-label { display: block; font-weight: 600; font-size: .875rem; color: #475569; margin-bottom: .35rem; }
+    .field-required { color: #ef4444; margin-left: .2rem; }
+    .field-errors { color: #ef4444; font-size: .82rem; margin-top: .3rem; }
+    .field-help { color: #94a3b8; font-size: .8rem; margin-top: .2rem; }
+
+    /* ── Detail sections ── */
+    .section-title {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: .5rem;
+      margin-top: 1.2rem;
+    }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: .3rem .8rem; }
+    dt { font-weight: 600; color: #475569; font-size: .875rem; }
+    dd { color: #1a202c; font-size: .875rem; }
+
+    /* ── Note pill ── */
+    .note-pill {
+      display: inline-block;
+      padding: .2em .7em;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: .85rem;
+    }
+    .note-ok  { background: #d1fae5; color: #065f46; }
+    .note-avg { background: #fef9c3; color: #854d0e; }
+    .note-bad { background: #fee2e2; color: #991b1b; }
+
+    /* ── Messages ── */
+    .messages { list-style: none; margin-bottom: 1rem; }
+    .messages li { padding: .7rem 1rem; border-radius: 8px; margin-bottom: .5rem; font-size: .9rem; }
+    .messages .success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+    .messages .error   { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+    .messages .warning { background: #fef9c3; color: #854d0e; border-left: 4px solid #f59e0b; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">🏫 Lycée RGPD</span>
+    <span class="nav-sep">|</span>
+    <a href="/admin/">Tableau de bord</a>
+    <a href="/admin/eleves/">Élèves</a>
+    {% with role=user.profile.role %}
+    {% if role == 'admin' or role == 'scolarite' or role == 'vie_scolaire' %}
+    <a href="/admin/parents/">Parents</a>
+    {% endif %}
+    {% if role == 'admin' or role == 'scolarite' or role == 'infirmier' %}
+    <a href="/admin/medecins/">Médecins</a>
+    {% endif %}
+    {% if role == 'admin' or role == 'scolarite' or role == 'professeur' %}
+    <a href="/admin/matieres/">Matières</a>
+    {% endif %}
+    {% if role == 'admin' or role == 'scolarite' or role == 'professeur' %}
+    <a href="/admin/notes/">Notes</a>
+    {% endif %}
+    {% if role == 'admin' %}
+    <a href="/admin/utilisateurs/">Utilisateurs</a>
+    {% endif %}
+    {% endwith %}
+    <span class="nav-sep">|</span>
+    <a href="/api/">API REST</a>
+    {% if user.profile.role == 'admin' or user.is_superuser %}
+    <a href="/django-admin/" style="opacity:.7;font-size:.8rem">⚙ Django Admin</a>
+    {% endif %}
+    <span class="spacer"></span>
+    {% if user.is_authenticated %}
+      <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:.15rem .6rem;font-size:.75rem;font-weight:600">
+        {% with role=user.profile.role %}
+        {% if role == 'admin' %}👑 Admin
+        {% elif role == 'scolarite' %}📋 Scolarité
+        {% elif role == 'professeur' %}📚 Professeur
+        {% elif role == 'vie_scolaire' %}🏫 Vie scolaire
+        {% elif role == 'infirmier' %}🏥 Infirmier·ère
+        {% elif role == 'cantine' %}🍽 Cantine
+        {% else %}👤 {{ role }}
+        {% endif %}
+        {% endwith %}
+      </span>
+      <span style="font-size:.85rem;opacity:.8">{{ user.get_full_name|default:user.username }}</span>
+      <a href="/admin/logout/">Déconnexion</a>
+    {% else %}
+      <a href="/admin/login/">Connexion</a>
+    {% endif %}
+  </nav>
+
+  <div class="container">
+    {% if messages %}
+    <ul class="messages">
+      {% for msg in messages %}
+        <li class="{{ msg.tags }}">{{ msg }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>
+

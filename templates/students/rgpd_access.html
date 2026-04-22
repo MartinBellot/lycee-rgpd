@@ -1,0 +1,200 @@
+{% extends "students/base.html" %}
+{% block title %}Mes données personnelles – Droit d'accès (Art. 15 RGPD){% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
+  <div>
+    <h1 style="font-size:1.8rem;color:#1e3a5f">🔍 Mes données personnelles</h1>
+    <p style="color:#64748b;margin-top:.3rem">Art. 15 RGPD – Droit d'accès</p>
+  </div>
+  <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+    <a class="btn btn-secondary" href="{% url 'rgpd_export' %}?format=json">⬇ Export JSON</a>
+    <a class="btn btn-secondary" href="{% url 'rgpd_export' %}?format=csv">⬇ Export CSV</a>
+    <a class="btn btn-primary" href="{% url 'rgpd_rectify' %}">✏️ Rectifier</a>
+  </div>
+</div>
+
+<!-- Compte -->
+<div class="card">
+  <div class="section-header">
+    <h2>👤 Compte utilisateur</h2>
+    <span class="badge badge-blue">Compte</span>
+  </div>
+  <dl>
+    <dt>Identifiant</dt><dd>{{ payload.compte.username }}</dd>
+    {% if payload.compte.prenom or payload.compte.nom %}
+    <dt>Nom affiché</dt><dd>{{ payload.compte.prenom }} {{ payload.compte.nom }}</dd>
+    {% endif %}
+    {% if payload.compte.email %}
+    <dt>Email du compte</dt><dd>{{ payload.compte.email }}</dd>
+    {% endif %}
+    <dt>Compte créé le</dt><dd>{{ payload.compte.date_creation_compte }}</dd>
+    <dt>Rôle</dt><dd>{{ payload.role }}</dd>
+  </dl>
+</div>
+
+{% if role == 'eleve' %}
+
+  {% if payload.identite %}
+  <!-- Identité -->
+  <div class="card">
+    <div class="section-header">
+      <h2>🪪 Identité</h2>
+      <span class="badge badge-green">Données d'identification</span>
+    </div>
+    <dl>
+      <dt>Nom</dt><dd>{{ payload.identite.nom }}</dd>
+      <dt>Prénom</dt><dd>{{ payload.identite.prenom }}</dd>
+      {% if payload.identite.date_naissance %}
+      <dt>Date de naissance</dt><dd>{{ payload.identite.date_naissance }}</dd>
+      {% endif %}
+      <dt>Email</dt><dd>{{ payload.identite.email|default:"–" }}</dd>
+      <dt>Téléphone</dt><dd>{{ payload.identite.telephone|default:"–" }}</dd>
+      <dt>Adresse</dt><dd style="white-space:pre-line">{{ payload.identite.adresse|default:"–" }}</dd>
+    </dl>
+  </div>
+  {% endif %}
+
+  {% if payload.scolarite %}
+  <!-- Scolarité -->
+  <div class="card">
+    <div class="section-header">
+      <h2>🎒 Scolarité</h2>
+      <span class="badge badge-green">Données scolaires</span>
+    </div>
+    <dl>
+      <dt>Classe</dt><dd>{{ payload.scolarite.classe|default:"–" }}</dd>
+      {% if payload.scolarite.options %}
+      <dt>Options</dt><dd>{{ payload.scolarite.options }}</dd>
+      {% endif %}
+    </dl>
+  </div>
+  {% endif %}
+
+  <!-- Notes -->
+  <div class="card">
+    <div class="section-header">
+      <h2>📝 Notes</h2>
+      <span class="badge badge-blue">{{ payload.notes|length }} note(s)</span>
+    </div>
+    {% if payload.notes %}
+    <table>
+      <thead>
+        <tr>
+          <th>Matière</th><th>Coeff.</th><th>Trim.</th>
+          <th>Note /20</th><th>Appréciation</th><th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for n in payload.notes %}
+        <tr>
+          <td>{{ n.matiere }}</td>
+          <td>{{ n.coefficient }}</td>
+          <td>T{{ n.trimestre }}</td>
+          <td>
+            <span class="note-val {% if n.note >= 14 %}note-ok{% elif n.note >= 10 %}note-avg{% else %}note-bad{% endif %}">
+              {{ n.note }}/20
+            </span>
+          </td>
+          <td style="font-style:italic;color:#64748b">{{ n.appreciation|default:"–" }}</td>
+          <td style="color:#94a3b8;font-size:.85rem">{{ n.date }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p style="color:#94a3b8;font-size:.9rem">Aucune note enregistrée.</p>
+    {% endif %}
+  </div>
+
+{% elif role == 'parent' %}
+
+  {% if payload.contact %}
+  <!-- Contact parent -->
+  <div class="card">
+    <div class="section-header">
+      <h2>📋 Vos coordonnées</h2>
+      <span class="badge badge-green">Données de contact</span>
+    </div>
+    <dl>
+      <dt>Nom</dt><dd>{{ payload.contact.nom }}</dd>
+      <dt>Prénom</dt><dd>{{ payload.contact.prenom }}</dd>
+      <dt>Lien</dt><dd>{{ payload.contact.lien }}</dd>
+      <dt>Email</dt><dd>{{ payload.contact.email|default:"–" }}</dd>
+      <dt>Téléphone</dt><dd>{{ payload.contact.telephone|default:"–" }}</dd>
+    </dl>
+  </div>
+  {% endif %}
+
+  <!-- Enfants -->
+  <div class="card">
+    <div class="section-header">
+      <h2>👧 Enfants associés</h2>
+      <span class="badge badge-blue">{{ payload.enfants|length }} enfant(s)</span>
+    </div>
+    {% if payload.enfants %}
+    <table>
+      <thead><tr><th>Nom</th><th>Prénom</th><th>Classe</th></tr></thead>
+      <tbody>
+        {% for e in payload.enfants %}
+        <tr>
+          <td>{{ e.nom }}</td>
+          <td>{{ e.prenom }}</td>
+          <td>{{ e.classe|default:"–" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p style="color:#94a3b8;font-size:.9rem">Aucun enfant associé.</p>
+    {% endif %}
+  </div>
+
+{% endif %}
+
+<!-- Zone droits RGPD -->
+<div class="card" style="border:1px solid #fde68a;background:#fffbeb">
+  <h2 style="color:#92400e">⚖️ Exercer vos droits</h2>
+  <p style="color:#78350f;font-size:.9rem;margin-bottom:1rem">
+    Conformément au RGPD, vous pouvez exercer les droits suivants sur vos données personnelles.
+  </p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem">
+    <a href="{% url 'rgpd_rectify' %}" class="rgpd-action-card">
+      <span style="font-size:1.5rem">✏️</span>
+      <strong>Rectification</strong>
+      <span>Corriger vos coordonnées (Art. 16)</span>
+    </a>
+    <a href="{% url 'rgpd_export' %}?format=json" class="rgpd-action-card">
+      <span style="font-size:1.5rem">📦</span>
+      <strong>Portabilité JSON</strong>
+      <span>Exporter vos données (Art. 20)</span>
+    </a>
+    <a href="{% url 'rgpd_export' %}?format=csv" class="rgpd-action-card">
+      <span style="font-size:1.5rem">📊</span>
+      <strong>Portabilité CSV</strong>
+      <span>Exporter vos données (Art. 20)</span>
+    </a>
+    <a href="{% url 'rgpd_erase' %}" class="rgpd-action-card" style="border-color:#fca5a5">
+      <span style="font-size:1.5rem">🗑️</span>
+      <strong>Effacement</strong>
+      <span>Supprimer votre compte (Art. 17)</span>
+    </a>
+  </div>
+</div>
+
+<style>
+  .rgpd-action-card {
+    display:flex;flex-direction:column;gap:.3rem;padding:1rem;
+    background:#fff;border:1px solid #e2e8f0;border-radius:10px;
+    text-decoration:none;color:#1e3a5f;transition:box-shadow .2s;
+  }
+  .rgpd-action-card:hover { box-shadow:0 4px 12px rgba(0,0,0,.1); }
+  .rgpd-action-card strong { font-size:.95rem; }
+  .rgpd-action-card span:last-child { font-size:.8rem;color:#64748b; }
+  .btn { display:inline-block;padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:600;cursor:pointer;border:none; }
+  .btn-primary { background:#2563eb;color:#fff; }
+  .btn-secondary { background:#f1f5f9;color:#374151;border:1px solid #e2e8f0; }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-secondary:hover { background:#e2e8f0; }
+</style>
+{% endblock %}

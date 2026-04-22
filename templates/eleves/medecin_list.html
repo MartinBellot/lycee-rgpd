@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Médecins traitants{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:1.5rem;font-size:1.6rem;color:#1e3a5f;">Médecins traitants</h1>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <h2>{{ medecins.count }} médecin{{ medecins.count|pluralize }}</h2>
+    <a class="btn btn-primary" href="{% url 'medecin_create' %}">+ Ajouter</a>
+  </div>
+  {% if medecins %}
+  <table>
+    <thead>
+      <tr><th>Nom</th><th>Prénom</th><th>Téléphone</th><th>Adresse</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for m in medecins %}
+      <tr>
+        <td><strong>Dr {{ m.nom }}</strong></td>
+        <td>{{ m.prenom }}</td>
+        <td>{{ m.telephone|default:"–" }}</td>
+        <td style="max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.adresse|default:"–" }}</td>
+        <td style="white-space:nowrap">
+          <a class="btn btn-secondary" href="{% url 'medecin_edit' m.pk %}">Modifier</a>
+          <a class="btn btn-danger" href="{% url 'medecin_delete' m.pk %}">Supprimer</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p style="color:#64748b">Aucun médecin enregistré.</p>
+  {% endif %}
+</div>
+{% endblock %}

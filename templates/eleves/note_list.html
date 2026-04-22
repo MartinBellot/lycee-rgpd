@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Notes{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
+  {% if eleve %}
+    <a class="btn btn-secondary" href="{% url 'eleve_detail' eleve.pk %}">← {{ eleve }}</a>
+    <h1 style="font-size:1.6rem;color:#1e3a5f">Notes – {{ eleve }}</h1>
+  {% else %}
+    <h1 style="font-size:1.6rem;color:#1e3a5f">Toutes les notes</h1>
+  {% endif %}
+  <a class="btn btn-primary" href="{% url 'note_create' %}{% if eleve %}?eleve={{ eleve.pk }}{% endif %}" style="margin-left:auto">+ Ajouter</a>
+</div>
+
+<div class="card">
+  {% if notes %}
+  <table>
+    <thead>
+      <tr>
+        {% if not eleve %}<th>Élève</th>{% endif %}
+        <th>Matière</th><th>Trimestre</th><th>Note /20</th><th>Appréciation</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for n in notes %}
+      <tr>
+        {% if not eleve %}
+          <td><a href="{% url 'eleve_detail' n.eleve.pk %}">{{ n.eleve }}</a></td>
+        {% endif %}
+        <td>{{ n.matiere.nom }}</td>
+        <td><span class="badge badge-blue">T{{ n.trimestre }}</span></td>
+        <td>
+          <span class="note-pill {% if n.note >= 14 %}note-ok{% elif n.note >= 10 %}note-avg{% else %}note-bad{% endif %}">
+            {{ n.note }}/20
+          </span>
+        </td>
+        <td style="font-style:italic;color:#475569">{{ n.appreciation|default:"–" }}</td>
+        <td style="white-space:nowrap">
+          <a class="btn btn-secondary" href="{% url 'note_edit' n.pk %}">Modifier</a>
+          <a class="btn btn-danger" href="{% url 'note_delete' n.pk %}">Supprimer</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p style="color:#64748b">Aucune note enregistrée.</p>
+  {% endif %}
+</div>
+{% endblock %}

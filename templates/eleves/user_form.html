@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;margin:0 auto">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+    <a href="{{ cancel_url }}" style="color:#64748b;text-decoration:none;font-size:.9rem">← Retour</a>
+    <h1 style="font-size:1.5rem;color:#1e3a5f">{{ form_title }}</h1>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- Section : Compte Django -->
+    <div style="background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:1.5rem;margin-bottom:1.5rem">
+      <h2 style="font-size:1rem;color:#374151;margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid #e2e8f0">
+        🔐 Informations de connexion
+      </h2>
+
+      {% for field in user_form %}
+      <div style="margin-bottom:1rem">
+        <label for="{{ field.id_for_label }}"
+               style="display:block;font-weight:600;margin-bottom:.35rem;font-size:.9rem;color:#374151">
+          {{ field.label }}{% if field.field.required %} <span style="color:#ef4444">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+          {% for error in field.errors %}
+          <p style="color:#ef4444;font-size:.82rem;margin-top:.25rem">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+        {% if field.help_text %}
+          <p style="color:#94a3b8;font-size:.8rem;margin-top:.2rem">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Section : Rôle & profil -->
+    <div style="background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:1.5rem;margin-bottom:1.5rem">
+      <h2 style="font-size:1rem;color:#374151;margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid #e2e8f0">
+        🎭 Rôle et profil
+      </h2>
+
+      {% for field in profile_form %}
+      <div style="margin-bottom:1.2rem">
+        <label for="{{ field.id_for_label }}"
+               style="display:block;font-weight:600;margin-bottom:.35rem;font-size:.9rem;color:#374151">
+          {{ field.label }}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+          {% for error in field.errors %}
+          <p style="color:#ef4444;font-size:.82rem;margin-top:.25rem">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+        {% if field.help_text %}
+          <p style="color:#94a3b8;font-size:.8rem;margin-top:.2rem">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <p style="color:#94a3b8;font-size:.8rem;margin-top:.5rem">
+        ℹ️ <em>Classe</em> et <em>Matières</em> ne s'appliquent qu'au rôle <strong>Professeur</strong>.
+        <em>Élève</em> et <em>Parent</em> ne s'appliquent qu'aux rôles correspondants.
+      </p>
+    </div>
+
+    <div style="display:flex;gap:1rem">
+      <button type="submit"
+              style="background:#2563eb;color:#fff;padding:.65rem 1.5rem;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer">
+        Enregistrer
+      </button>
+      <a href="{{ cancel_url }}"
+         style="background:#e2e8f0;color:#374151;padding:.65rem 1.5rem;border-radius:8px;text-decoration:none;font-size:.95rem;font-weight:600">
+        Annuler
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

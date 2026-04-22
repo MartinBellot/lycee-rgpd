@@ -1,0 +1,17 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div style="margin:0 0 1.5rem;padding:1rem 1.25rem;background:#1e3a5f;border-radius:8px;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+  <span style="color:#fff;font-weight:700;font-size:1rem">🗄 Base de données SQLite</span>
+  <a href="{% url 'admin:export_schema' %}"
+     style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;background:#fff;color:#1e3a5f;border-radius:6px;font-weight:600;font-size:.875rem;text-decoration:none">
+    ⬇ Exporter le schéma SQL (.sql)
+  </a>
+  <a href="/admin/"
+     style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;background:#2563eb;color:#fff;border-radius:6px;font-weight:600;font-size:.875rem;text-decoration:none;margin-left:auto">
+    ← Interface personnalisée
+  </a>
+</div>
+{{ block.super }}
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Accès refusé{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;margin:4rem auto;text-align:center">
+  <div style="font-size:4rem;margin-bottom:1rem">🚫</div>
+  <h1 style="color:#991b1b;font-size:2rem;margin-bottom:.5rem">Accès refusé</h1>
+  <p style="color:#64748b;margin-bottom:1.5rem">
+    Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+    {% if user_role %}
+      <br>Votre rôle actuel : <strong>{{ user_role }}</strong>
+    {% endif %}
+  </p>
+  <div style="display:flex;gap:1rem;justify-content:center">
+    <a href="javascript:history.back()"
+       style="background:#e2e8f0;color:#374151;padding:.6rem 1.2rem;border-radius:8px;text-decoration:none;font-weight:600">
+      ← Retour
+    </a>
+    <a href="/admin/"
+       style="background:#2563eb;color:#fff;padding:.6rem 1.2rem;border-radius:8px;text-decoration:none;font-weight:600">
+      Tableau de bord
+    </a>
+  </div>
+</div>
+{% endblock %}

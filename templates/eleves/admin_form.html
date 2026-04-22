@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div style="max-width:720px">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+    <a class="btn btn-secondary" href="{{ cancel_url }}">← Annuler</a>
+    <h1 style="font-size:1.4rem;color:#1e3a5f">{{ form_title }}</h1>
+  </div>
+
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div style="background:#fee2e2;color:#991b1b;padding:.75rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.875rem">
+          {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+      <div class="field-group">
+        <label class="field-label" for="{{ field.id_for_label }}">
+          {{ field.label }}
+          {% if field.field.required %}<span class="field-required">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+          <p class="field-help">{{ field.help_text }}</p>
+        {% endif %}
+        {% if field.errors %}
+          <p class="field-errors">{% for e in field.errors %}{{ e }}{% endfor %}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div style="display:flex;gap:.75rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e2e8f0">
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+        <a class="btn btn-secondary" href="{{ cancel_url }}">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

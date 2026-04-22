@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Liste des élèves{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:1.5rem;font-size:1.6rem;color:#1e3a5f;">Liste des élèves</h1>
+
+<form method="get" class="search-bar card" style="margin-bottom:1.5rem;padding:1rem;">
+  <input type="text" name="q" class="form-control" placeholder="Rechercher (nom, prénom…)" value="{{ q }}" style="width:220px">
+  <select name="classe" class="form-select" style="width:auto">
+    <option value="">Toutes les classes</option>
+    {% for c in classes %}
+      <option value="{{ c }}" {% if c == classe %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-primary" type="submit">Filtrer</button>
+  {% if q or classe %}
+    <a class="btn btn-secondary" href="{% url 'eleve_list' %}">Réinitialiser</a>
+  {% endif %}
+</form>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <h2>{{ eleves.count }} élève{{ eleves.count|pluralize }}</h2>
+    <a class="btn btn-primary" href="{% url 'eleve_create' %}">+ Ajouter</a>
+  </div>
+
+  {% if eleves %}
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th><th>Prénom</th><th>Classe</th>
+        <th>Email</th><th>Téléphone</th><th>Parents</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in eleves %}
+      <tr>
+        <td><strong>{{ e.nom }}</strong></td>
+        <td>{{ e.prenom }}</td>
+        <td><span class="badge badge-blue">{{ e.scolarite.classe|default:"–" }}</span></td>
+        <td>{% if e.email %}<a href="mailto:{{ e.email }}">{{ e.email }}</a>{% else %}–{% endif %}</td>
+        <td>{{ e.telephone|default:"–" }}</td>
+        <td>
+          {% for p in e.parents.all %}
+            <span class="badge badge-green">{{ p.prenom }} {{ p.nom }}</span>
+          {% empty %}–{% endfor %}
+        </td>
+        <td style="white-space:nowrap">
+          <a class="btn btn-primary" href="{% url 'eleve_detail' e.pk %}">Fiche</a>
+          <a class="btn btn-secondary" href="{% url 'eleve_edit' e.pk %}">Modifier</a>
+          <a class="btn btn-danger" href="{% url 'eleve_delete' e.pk %}">Supprimer</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p style="color:#64748b;padding:1rem 0">Aucun élève ne correspond à la recherche.</p>
+  {% endif %}
+</div>
+{% endblock %}
+

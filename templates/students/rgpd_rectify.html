@@ -1,0 +1,64 @@
+{% extends "students/base.html" %}
+{% block title %}Rectifier mes données – Art. 16 RGPD{% endblock %}
+
+{% block content %}
+<div style="max-width:520px;margin:0 auto">
+
+  <div style="margin-bottom:1.5rem">
+    <a href="{% url 'rgpd_access' %}" style="color:#64748b;text-decoration:none;font-size:.875rem">← Mes données</a>
+    <h1 style="font-size:1.6rem;color:#1e3a5f;margin-top:.5rem">✏️ Rectifier mes coordonnées</h1>
+    <p style="color:#64748b;font-size:.9rem;margin-top:.3rem">Art. 16 RGPD – Vous pouvez corriger vos informations de contact.</p>
+  </div>
+
+  <div class="card" style="border-left:4px solid #2563eb">
+    <p style="font-size:.875rem;color:#374151">
+      {% if role == 'eleve' %}
+        Vous pouvez modifier votre <strong>adresse e-mail</strong>, votre <strong>numéro de téléphone</strong>
+        et votre <strong>adresse postale</strong>.<br>
+        Les données d'identité (nom, prénom, date de naissance) et les données scolaires
+        ne peuvent être modifiées qu'auprès de l'administration.
+      {% else %}
+        Vous pouvez modifier votre <strong>adresse e-mail</strong> et votre <strong>numéro de téléphone</strong>.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div style="margin-bottom:1.2rem">
+        <label style="display:block;font-weight:600;font-size:.875rem;color:#374151;margin-bottom:.4rem">
+          {{ field.label }}{% if field.field.required %} <span style="color:#ef4444">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+        <p style="color:#ef4444;font-size:.8rem;margin-top:.3rem">{{ field.errors.0 }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div style="display:flex;gap:.75rem;margin-top:1.5rem">
+        <button type="submit" class="btn btn-primary" style="flex:1">Enregistrer les modifications</button>
+        <a href="{% url 'rgpd_access' %}" class="btn btn-secondary" style="flex:1;text-align:center">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .form-control, .form-textarea, .form-select {
+    width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:8px;
+    font-size:.9rem;color:#1a202c;background:#fff;
+  }
+  .form-textarea { resize:vertical; }
+  .form-control:focus, .form-textarea:focus, .form-select:focus {
+    outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15);
+  }
+  .btn { display:inline-block;padding:.55rem 1rem;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:600;cursor:pointer;border:none; }
+  .btn-primary { background:#2563eb;color:#fff; }
+  .btn-secondary { background:#f1f5f9;color:#374151;border:1px solid #e2e8f0; }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-secondary:hover { background:#e2e8f0; }
+</style>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Gestion des utilisateurs{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="font-size:1.6rem;color:#1e3a5f">👥 Gestion des utilisateurs</h1>
+  <a href="{% url 'user_create' %}"
+     style="background:#2563eb;color:#fff;padding:.55rem 1.1rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:.9rem">
+    + Nouvel utilisateur
+  </a>
+</div>
+
+{% if users %}
+<div style="background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);overflow:hidden">
+  <table style="width:100%;border-collapse:collapse;font-size:.9rem">
+    <thead>
+      <tr style="background:#f8fafc">
+        <th style="padding:.7rem 1rem;text-align:left;color:#64748b;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #e2e8f0">Identifiant</th>
+        <th style="padding:.7rem 1rem;text-align:left;color:#64748b;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #e2e8f0">Nom complet</th>
+        <th style="padding:.7rem 1rem;text-align:left;color:#64748b;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #e2e8f0">Email</th>
+        <th style="padding:.7rem 1rem;text-align:left;color:#64748b;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #e2e8f0">Rôle</th>
+        <th style="padding:.7rem 1rem;text-align:left;color:#64748b;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #e2e8f0">Détails</th>
+        <th style="padding:.7rem 1rem;text-align:left;color:#64748b;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #e2e8f0">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr style="border-bottom:1px solid #f1f5f9">
+        <td style="padding:.65rem 1rem;font-weight:600">
+          {{ u.username }}
+          {% if u.is_superuser %}<span style="background:#fef3c7;color:#92400e;padding:.1rem .4rem;border-radius:4px;font-size:.7rem;margin-left:.3rem">SUPER</span>{% endif %}
+        </td>
+        <td style="padding:.65rem 1rem">{{ u.get_full_name|default:"–" }}</td>
+        <td style="padding:.65rem 1rem;color:#64748b">{{ u.email|default:"–" }}</td>
+        <td style="padding:.65rem 1rem">
+          {% if u.profile %}
+          {% with role=u.profile.role %}
+          <span style="display:inline-block;padding:.15rem .55rem;border-radius:20px;font-size:.75rem;font-weight:600;
+            {% if role == 'admin' %}background:#fee2e2;color:#991b1b
+            {% elif role == 'scolarite' %}background:#dbeafe;color:#1d4ed8
+            {% elif role == 'professeur' %}background:#d1fae5;color:#065f46
+            {% elif role == 'vie_scolaire' %}background:#fef3c7;color:#92400e
+            {% elif role == 'infirmier' %}background:#ede9fe;color:#5b21b6
+            {% elif role == 'cantine' %}background:#fce7f3;color:#9d174d
+            {% elif role == 'eleve' %}background:#e0f2fe;color:#075985
+            {% elif role == 'parent' %}background:#f0fdf4;color:#166534
+            {% endif %}">
+            {{ u.profile.get_role_display }}
+          </span>
+          {% endwith %}
+          {% else %}—{% endif %}
+        </td>
+        <td style="padding:.65rem 1rem;font-size:.82rem;color:#64748b">
+          {% if u.profile %}
+            {% if u.profile.role == 'professeur' %}
+              {% if u.profile.classe %}Classe : {{ u.profile.classe }}{% endif %}
+              {% if u.profile.matieres.all %}
+                <br>Matières : {% for m in u.profile.matieres.all %}{{ m.nom }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              {% endif %}
+            {% elif u.profile.role == 'eleve' %}
+              {% if u.profile.eleve %}Élève : {{ u.profile.eleve }}{% endif %}
+            {% elif u.profile.role == 'parent' %}
+              {% if u.profile.parent %}Parent : {{ u.profile.parent }}{% endif %}
+            {% endif %}
+          {% endif %}
+        </td>
+        <td style="padding:.65rem 1rem">
+          <div style="display:flex;gap:.5rem">
+            <a href="{% url 'user_edit' u.pk %}"
+               style="background:#e0f2fe;color:#075985;padding:.3rem .6rem;border-radius:6px;text-decoration:none;font-size:.8rem;font-weight:600">
+              Modifier
+            </a>
+            {% if u.pk != request.user.pk %}
+            <a href="{% url 'user_delete' u.pk %}"
+               style="background:#fee2e2;color:#991b1b;padding:.3rem .6rem;border-radius:6px;text-decoration:none;font-size:.8rem;font-weight:600"
+               onclick="return confirm('Supprimer l\'utilisateur {{ u.username }} ?')">
+              Supprimer
+            </a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div style="background:#fff;border-radius:12px;padding:3rem;text-align:center;color:#94a3b8">
+  Aucun utilisateur.
+</div>
+{% endif %}
+{% endblock %}

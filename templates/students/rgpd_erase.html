@@ -1,0 +1,77 @@
+{% extends "students/base.html" %}
+{% block title %}Effacer mon compte – Art. 17 RGPD{% endblock %}
+
+{% block content %}
+<div style="max-width:520px;margin:0 auto">
+
+  <div style="margin-bottom:1.5rem">
+    <a href="{% url 'rgpd_access' %}" style="color:#64748b;text-decoration:none;font-size:.875rem">← Mes données</a>
+    <h1 style="font-size:1.6rem;color:#991b1b;margin-top:.5rem">🗑️ Supprimer mon compte</h1>
+    <p style="color:#64748b;font-size:.9rem;margin-top:.3rem">Art. 17 RGPD – Droit à l'effacement</p>
+  </div>
+
+  <!-- Avertissement : ce qui est supprimé -->
+  <div class="card" style="border-left:4px solid #ef4444">
+    <h2 style="color:#991b1b;font-size:1rem;margin-bottom:.75rem">⚠️ Qu'est-ce qui sera supprimé ?</h2>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5rem;font-size:.875rem">
+      <li style="color:#065f46">✅ Votre compte utilisateur (identifiant + mot de passe)</li>
+      <li style="color:#065f46">✅ Votre profil et votre rôle dans l'application</li>
+    </ul>
+  </div>
+
+  <!-- Avertissement : ce qui est conservé -->
+  <div class="card" style="border-left:4px solid #f59e0b">
+    <h2 style="color:#92400e;font-size:1rem;margin-bottom:.75rem">📋 Ce qui est conservé (obligation légale)</h2>
+    <p style="font-size:.875rem;color:#78350f;margin-bottom:.6rem">
+      Conformément à la mission d'intérêt public (Art. 6 §1 e RGPD) et aux obligations
+      réglementaires de l'Éducation Nationale, les données scolaires suivantes sont
+      conservées indépendamment de ce compte :
+    </p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.4rem;font-size:.875rem;color:#92400e">
+      {% if role == 'eleve' %}
+      <li>📁 Votre dossier scolaire (identité, scolarité, notes)</li>
+      <li>📁 Vos données de santé enregistrées par l'établissement</li>
+      {% else %}
+      <li>📁 Vos coordonnées dans le dossier scolaire de vos enfants</li>
+      {% endif %}
+    </ul>
+    <p style="font-size:.8rem;color:#92400e;margin-top:.75rem">
+      Pour une demande d'effacement des données scolaires, contactez le délégué à la
+      protection des données (DPO) de l'établissement.
+    </p>
+  </div>
+
+  <!-- Formulaire de confirmation -->
+  <div class="card" style="border-left:4px solid #991b1b">
+    <h2 style="color:#991b1b;font-size:1rem;margin-bottom:1rem">Confirmer la suppression</h2>
+    {% if error %}
+    <p style="color:#991b1b;background:#fee2e2;padding:.6rem .9rem;border-radius:6px;font-size:.875rem;margin-bottom:1rem">
+      {{ error }}
+    </p>
+    {% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div style="margin-bottom:1.2rem">
+        <label style="display:block;font-weight:600;font-size:.875rem;color:#374151;margin-bottom:.4rem">
+          Entrez votre mot de passe pour confirmer
+        </label>
+        <input type="password" name="password" required autocomplete="current-password"
+               style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:8px;font-size:.9rem"
+               placeholder="Votre mot de passe actuel">
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <a href="{% url 'rgpd_access' %}" class="btn btn-secondary" style="flex:1;text-align:center">Annuler</a>
+        <button type="submit" class="btn btn-danger" style="flex:1">Supprimer définitivement</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .btn { display:inline-block;padding:.55rem 1rem;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:600;cursor:pointer;border:none; }
+  .btn-secondary { background:#f1f5f9;color:#374151;border:1px solid #e2e8f0; }
+  .btn-danger { background:#dc2626;color:#fff; }
+  .btn-secondary:hover { background:#e2e8f0; }
+  .btn-danger:hover { background:#b91c1c; }
+</style>
+{% endblock %}

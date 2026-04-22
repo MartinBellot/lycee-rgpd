@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Matières{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:1.5rem;font-size:1.6rem;color:#1e3a5f;">Matières</h1>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <h2>{{ matieres.count }} matière{{ matieres.count|pluralize }}</h2>
+    <a class="btn btn-primary" href="{% url 'matiere_create' %}">+ Ajouter</a>
+  </div>
+  {% if matieres %}
+  <table>
+    <thead>
+      <tr><th>Matière</th><th>Coefficient</th><th>Nb notes</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for m in matieres %}
+      <tr>
+        <td><strong>{{ m.nom }}</strong></td>
+        <td>{{ m.coefficient }}</td>
+        <td><span class="badge badge-blue">{{ m.notes.count }}</span></td>
+        <td style="white-space:nowrap">
+          <a class="btn btn-secondary" href="{% url 'matiere_edit' m.pk %}">Modifier</a>
+          <a class="btn btn-danger" href="{% url 'matiere_delete' m.pk %}">Supprimer</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p style="color:#64748b">Aucune matière enregistrée.</p>
+  {% endif %}
+</div>
+{% endblock %}

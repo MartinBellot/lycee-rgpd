@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Supprimer – {{ object }}{% endblock %}
+
+{% block content %}
+<div style="max-width:520px">
+  <div class="card" style="border-left:4px solid #ef4444">
+    <h2 style="color:#991b1b;margin-bottom:1rem">⚠ Confirmer la suppression</h2>
+    <p style="font-size:.95rem">
+      Êtes-vous sûr de vouloir supprimer <strong>« {{ object }} »</strong> ?
+    </p>
+    {% if delete_warning %}
+    <p style="color:#64748b;font-size:.85rem;margin-top:.6rem;padding:.6rem .8rem;background:#fef9c3;border-radius:6px">
+      ⚠ {{ delete_warning }}
+    </p>
+    {% endif %}
+    <form method="post" style="margin-top:1.5rem;display:flex;gap:.75rem">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+      <a class="btn btn-secondary" href="{{ cancel_url }}">Annuler</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

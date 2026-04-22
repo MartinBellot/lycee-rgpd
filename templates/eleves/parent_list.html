@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Parents / Tuteurs{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:1.5rem;font-size:1.6rem;color:#1e3a5f;">Parents / Tuteurs</h1>
+
+<form method="get" class="search-bar card" style="padding:1rem;margin-bottom:1.5rem">
+  <input type="text" name="q" class="form-control" placeholder="Nom, prénom, email…" value="{{ q }}" style="width:240px">
+  <button class="btn btn-primary" type="submit">Filtrer</button>
+  {% if q %}<a class="btn btn-secondary" href="{% url 'parent_list' %}">Réinitialiser</a>{% endif %}
+</form>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <h2>{{ parents.count }} parent{{ parents.count|pluralize }}</h2>
+    <a class="btn btn-primary" href="{% url 'parent_create' %}">+ Ajouter</a>
+  </div>
+  {% if parents %}
+  <table>
+    <thead>
+      <tr><th>Nom</th><th>Prénom</th><th>Lien</th><th>Téléphone</th><th>Email</th><th>Élèves</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for p in parents %}
+      <tr>
+        <td><strong>{{ p.nom }}</strong></td>
+        <td>{{ p.prenom }}</td>
+        <td><span class="badge badge-green">{{ p.get_lien_display }}</span></td>
+        <td>{{ p.telephone|default:"–" }}</td>
+        <td>{% if p.email %}<a href="mailto:{{ p.email }}">{{ p.email }}</a>{% else %}–{% endif %}</td>
+        <td>
+          {% for e in p.eleves.all %}
+            <a href="{% url 'eleve_detail' e.pk %}" class="badge badge-blue">{{ e.prenom }} {{ e.nom }}</a>
+          {% empty %}–{% endfor %}
+        </td>
+        <td style="white-space:nowrap">
+          <a class="btn btn-secondary" href="{% url 'parent_edit' p.pk %}">Modifier</a>
+          <a class="btn btn-danger" href="{% url 'parent_delete' p.pk %}">Supprimer</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p style="color:#64748b">Aucun parent enregistré.</p>
+  {% endif %}
+</div>
+{% endblock %}
