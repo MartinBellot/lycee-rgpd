@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Signalements de violation – Lycée RGPD{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <div>
+    <h1 style="font-size:1.4rem;color:#1e3a5f">⚠️ Signalements de violation de données</h1>
+    <p style="color:#64748b;font-size:.875rem;margin-top:.2rem">
+      Gestion des signalements reçus — Accès réservé administrateur
+    </p>
+  </div>
+  <a href="{% url 'audit_log' %}"
+     style="background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;border-radius:8px;
+            padding:.5rem 1rem;font-size:.875rem;font-weight:600;text-decoration:none">
+    📋 Journal d'audit
+  </a>
+</div>
+
+<!-- Filtre par statut -->
+<div class="card" style="padding:1rem;margin-bottom:1rem">
+  <form method="get" style="display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap">
+    <div>
+      <label style="display:block;font-size:.8rem;font-weight:600;color:#64748b;margin-bottom:.3rem">Statut</label>
+      <select name="status" class="form-select" style="width:220px">
+        <option value="">— Tous les statuts —</option>
+        {% for code, label in status_choices %}
+          <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn-primary" style="padding:.5rem 1.2rem">Filtrer</button>
+    {% if status_filter %}
+      <a href="{% url 'breach_report_list' %}" style="padding:.5rem 1rem;color:#64748b;font-size:.875rem;text-decoration:none;border:1px solid #e2e8f0;border-radius:6px">✕ Tous</a>
+    {% endif %}
+  </form>
+</div>
+
+{% if messages %}
+<ul class="messages">
+  {% for msg in messages %}<li class="{{ msg.tags }}">{{ msg }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+{% for report in reports %}
+<div class="card" style="border-left:4px solid
+  {% if report.status == 'pending' %}#f59e0b
+  {% elif report.status == 'investigating' %}#3b82f6
+  {% elif report.status == 'resolved' %}#10b981
+  {% else %}#94a3b8{% endif %}">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem">
+    <div>
+      <strong>Signalement #{{ report.pk }}</strong>
+      <span style="font-size:.8rem;color:#64748b;margin-left:.5rem">
+        {{ report.submitted_at|date:"d/m/Y à H:i" }}
+      </span>
+      — par
+      <strong>{% if report.reporter %}{{ report.reporter.username }}{% else %}<em>anonyme</em>{% endif %}</strong>
+    </div>
+    <span style="
+      padding:.2rem .7rem;border-radius:20px;font-size:.78rem;font-weight:700;
+      {% if report.status == 'pending' %}background:#fef9c3;color:#854d0e;
+      {% elif report.status == 'investigating' %}background:#dbeafe;color:#1e40af;
+      {% elif report.status == 'resolved' %}background:#d1fae5;color:#065f46;
+      {% else %}background:#f1f5f9;color:#475569;{% endif %}">
+      {{ report.get_status_display }}
+    </span>
+  </div>
+
+  <p style="font-size:.9rem;color:#374151;white-space:pre-wrap;margin-bottom:1rem">{{ report.description }}</p>
+
+  {% if report.admin_notes %}
+  <div style="background:#f8fafc;border-radius:6px;padding:.75rem;font-size:.85rem;color:#475569;margin-bottom:1rem">
+    <strong>Notes admin :</strong> {{ report.admin_notes }}
+  </div>
+  {% endif %}
+
+  <!-- Formulaire de mise à jour du statut -->
+  <details>
+    <summary style="cursor:pointer;font-size:.85rem;font-weight:600;color:#2563eb;user-select:none">
+      Mettre à jour le statut
+    </summary>
+    <form method="post" style="margin-top:.75rem;display:flex;flex-direction:column;gap:.75rem;max-width:500px">
+      {% csrf_token %}
+      <input type="hidden" name="pk" value="{{ report.pk }}">
+      <div>
+        <label style="font-size:.8rem;font-weight:600;color:#64748b;display:block;margin-bottom:.3rem">Nouveau statut</label>
+        <select name="status" class="form-select">
+          {% for code, label in status_choices %}
+            <option value="{{ code }}" {% if report.status == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.8rem;font-weight:600;color:#64748b;display:block;margin-bottom:.3rem">Notes administration</label>
+        <textarea name="admin_notes" class="form-textarea" rows="3">{{ report.admin_notes }}</textarea>
+      </div>
+      <button type="submit" class="btn-primary" style="width:fit-content;padding:.45rem 1.2rem">Enregistrer</button>
+    </form>
+  </details>
+
+</div>
+{% empty %}
+<div class="card" style="text-align:center;color:#94a3b8;padding:2.5rem">
+  Aucun signalement reçu.
+</div>
+{% endfor %}
+
+{% endblock %}

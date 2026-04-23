@@ -59,6 +59,14 @@ urlpatterns = [
     path("admin/utilisateurs/<int:pk>/edit/", views.user_edit, name="user_edit"),
     path("admin/utilisateurs/<int:pk>/delete/", views.user_delete, name="user_delete"),
 
+    # ── Journal d'audit & signalements (admin only) ───────────────
+    path("admin/audit/", views.audit_log_list, name="audit_log"),
+    path("admin/audit/signalements/", views.breach_report_list, name="breach_report_list"),
+
+    # ── DPO Contact & Signalement (public / tous authentifiés) ────
+    path("dpo/", views.dpo_contact, name="dpo_contact"),
+    path("dpo/signalement/", views.breach_report, name="breach_report"),
+
     # ── Portail élèves/parents (/students/) ───────────────────────
     path("students/", views.student_portal_redirect, name="student_portal"),
     path("students/login/", views.student_login, name="student_login"),

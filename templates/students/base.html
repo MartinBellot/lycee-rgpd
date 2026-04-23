@@ -65,6 +65,9 @@
     {% if user.is_authenticated %}
       <a href="{% url 'rgpd_access' %}" style="font-size:.8rem;opacity:.9">🔍 Mes données</a>
       <span class="nav-sep">|</span>
+      <a href="{% url 'dpo_contact' %}" style="font-size:.8rem;opacity:.9">🛡️ DPO</a>
+      <a href="{% url 'breach_report' %}" style="font-size:.8rem;opacity:.9">⚠️ Signalement</a>
+      <span class="nav-sep">|</span>
       <span class="role-badge">
         {% if user.profile.role == 'eleve' %}🎒 Élève
         {% elif user.profile.role == 'parent' %}👨‍👩‍👧 Parent

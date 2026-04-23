@@ -1,5 +1,5 @@
 
-# Lycée RGPD – Gestion des élèves
+# Lycée RGPD – Gestion des élèves | DOCUMENTATION TECHNIQUE
 
 Application Django de gestion des données d'un lycée, conçue en TOTALE conformité avec le RGPD.
 
@@ -124,6 +124,8 @@ Huit rôles définis dans `eleves/roles.py` :
 | `/admin/matieres/` | Liste des matières |
 | `/admin/notes/` | Liste des notes |
 | `/admin/utilisateurs/` | Gestion des comptes (admin seulement) |
+| `/admin/audit/` | Journal d'audit complet (admin seulement) |
+| `/admin/audit/signalements/` | Liste des signalements de violation (admin seulement) |
 | `/django-admin/` | Interface admin Django native (admin seulement) |
 
 ### Portail élèves/parents
@@ -140,6 +142,13 @@ Huit rôles définis dans `eleves/roles.py` :
 | `/students/rgpd/effacer/` | Supprimer mon compte (Art. 17 – Droit à l'effacement) |
 | `/students/rgpd/exporter/?format=json` | Export JSON (Art. 20 – Portabilité) |
 | `/students/rgpd/exporter/?format=csv` | Export CSV (Art. 20 – Portabilité) |
+
+### DPO & Sécurité (tous utilisateurs)
+
+| URL | Description |
+|---|---|
+| `/dpo/` | Page de contact DPO (accès public) |
+| `/dpo/signalement/` | Signalement de violation de données (anonyme ou authentifié) |
 
 ### API REST
 
@@ -188,6 +197,82 @@ RGPD/
         ├── parent_dashboard.html
         └── child_bulletin.html
 ```
+
+---
+
+## Contact DPO, Signalement et Journalisation
+
+### Contact DPO (Délégué à la Protection des Données)
+
+**URL :** `GET /dpo/` — accès public, aucune authentification requise
+
+Page centralisant toutes les informations de contact du référent RGPD, les 6 droits des personnes avec liens directs vers les fonctionnalités correspondantes, et un lien vers le formulaire de signalement. Affichée dans la navbar des deux portails.
+
+**Coordonnées DPO (démo) :**
+- Email : dpo@lycee-rgpd.fr  
+- Téléphone : 01 23 45 67 89 (lun–ven 9h–17h)
+- Réponse garantie dans le délai légal d'1 mois (Art. 12 RGPD)
+
+---
+
+### Procédure de signalement de violation de données (Art. 33–34 RGPD)
+
+**URL :** `GET / POST /dpo/signalement/` — accessible à tous (authentifié ou anonyme)
+
+Tout utilisateur peut signaler une violation supposée. Si l'utilisateur est connecté, son identifiant est automatiquement associé au signalement. Un utilisateur non connecté peut laisser ses coordonnées dans le message (signalement anonyme).
+
+**Cycle de vie d'un signalement :**
+
+| Statut | Description |
+|---|---|
+| `En attente` | Signalement reçu, non traité |
+| `En cours d'enquête` | Le DPO/admin a pris en charge la demande |
+| `Résolu` | Violation confirmée et traitée |
+| `Classé sans suite` | Fausse alerte, aucune violation avérée |
+
+**Interface admin :** `/admin/audit/signalements/` — l'administrateur peut lire les signalements, les qualifier et ajouter des notes internes.
+
+> L'établissement doit notifier la CNIL sous **72 heures** en cas de violation confirmée (Art. 33 RGPD). En cas de risque élevé pour les personnes, les individus concernés doivent également être informés (Art. 34 RGPD).
+
+---
+
+### Système de journalisation (Journal d'audit)
+
+**URL :** `GET /admin/audit/` — réservé aux administrateurs
+
+Toutes les actions sensibles sont enregistrées dans le modèle `AuditLog` avec : horodatage précis, utilisateur, action, cible, adresse IP, et détails.
+
+**Actions tracées automatiquement :**
+
+| Action | Déclencheur |
+|---|---|
+| `login` | Connexion réussie (portail staff ou élèves) |
+| `logout` | Déconnexion (portail staff ou élèves) |
+| `access` | Consultation d'une fiche élève (`/admin/eleves/<pk>/`) |
+| `create` | Création d'un élève ou d'une note |
+| `update` | Modification d'un élève ou d'une note |
+| `delete` | Suppression d'un élève ou d'une note |
+| `export` | Export RGPD (Art. 20) — format JSON ou CSV |
+| `erase` | Effacement de compte (Art. 17) |
+| `breach_report` | Soumission d'un signalement de violation |
+
+**Fonctionnalités de l'interface audit :**
+- Filtre par type d'action
+- Filtre par nom d'utilisateur
+- Affichage de l'adresse IP source (support `X-Forwarded-For` pour les proxies)
+- Les 500 entrées les plus récentes sont affichées
+
+**Modèle `AuditLog` :**  
+```python
+user         # FK User (SET_NULL si compte supprimé)
+action       # 'access' | 'create' | 'update' | 'delete' | 'export' | 'erase' | 'login' | 'logout' | 'breach_report'
+target       # Chaîne décrivant la ressource concernée (ex: "Élève #3 – Hugo Bernard")
+ip_address   # Adresse IP de la requête
+timestamp    # Horodatage automatique
+details      # Informations complémentaires (format, description tronquée...)
+```
+
+**Note technique :** `_audit()` est un helper silencieux — toute exception interne est ignorée pour ne jamais perturber le flux principal de l'application.
 
 ---
 
@@ -297,5 +382,6 @@ Le nom de fichier téléchargé suit le format `rgpd_<username>_<date>.<ext>`.
 | **Droit à l'effacement** | Art. 17 — `/students/rgpd/effacer/` supprime le compte (données scolaires conservées per obligation légale) |
 | **Droit à la portabilité** | Art. 20 — `/students/rgpd/exporter/` fournit un export JSON ou CSV structuré |
 | **Admin séparé** | `/django-admin/` réservé aux administrateurs (`has_permission` override) |
-| **Journalisation** | Django admin conserve les actions via `LogEntry` |
-| **Export SQL** | Endpoint `/django-admin/export-schema/` pour la documentation du schéma |
+| **Journalisation** | `AuditLog` : accès, créations, modifications, suppressions, exports, connexions |
+| **Contact DPO** | `/dpo/` public — coordonnées, droits, formulaire de signalement |
+| **Signalement violation** | `/dpo/signalement/` — tout utilisateur (authentifié ou anonyme) peut signaler |

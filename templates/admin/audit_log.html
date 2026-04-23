@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Journal d'audit – Lycée RGPD{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <div>
+    <h1 style="font-size:1.4rem;color:#1e3a5f">📋 Journal d'audit</h1>
+    <p style="color:#64748b;font-size:.875rem;margin-top:.2rem">
+      {{ total }} entrée{% if total != 1 %}s{% endif %} affichée{% if total != 1 %}s{% endif %}
+      (max 500) — Accès réservé administrateur
+    </p>
+  </div>
+  <a href="{% url 'breach_report_list' %}"
+     style="background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;border-radius:8px;
+            padding:.5rem 1rem;font-size:.875rem;font-weight:600;text-decoration:none">
+    ⚠️ Signalements de violation
+  </a>
+</div>
+
+<!-- Filtres -->
+<div class="card" style="padding:1rem">
+  <form method="get" style="display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap">
+    <div>
+      <label style="display:block;font-size:.8rem;font-weight:600;color:#64748b;margin-bottom:.3rem">Action</label>
+      <select name="action" class="form-select" style="width:200px">
+        <option value="">— Toutes les actions —</option>
+        {% for code, label in action_choices %}
+          <option value="{{ code }}" {% if action_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="display:block;font-size:.8rem;font-weight:600;color:#64748b;margin-bottom:.3rem">Utilisateur</label>
+      <input type="text" name="username" value="{{ username_filter }}"
+             class="form-control" style="width:200px" placeholder="identifiant...">
+    </div>
+    <button type="submit" class="btn-primary" style="padding:.5rem 1.2rem">Filtrer</button>
+    {% if action_filter or username_filter %}
+      <a href="{% url 'audit_log' %}" style="padding:.5rem 1rem;color:#64748b;font-size:.875rem;text-decoration:none;border:1px solid #e2e8f0;border-radius:6px">✕ Réinitialiser</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden">
+  <table>
+    <thead>
+      <tr>
+        <th>Horodatage</th>
+        <th>Utilisateur</th>
+        <th>Action</th>
+        <th>Cible</th>
+        <th>IP</th>
+        <th>Détails</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="font-size:.8rem;color:#64748b;white-space:nowrap">
+          {{ log.timestamp|date:"d/m/Y H:i:s" }}
+        </td>
+        <td style="font-weight:600;font-size:.875rem">
+          {% if log.user %}{{ log.user.username }}{% else %}<em style="color:#94a3b8">anonyme</em>{% endif %}
+        </td>
+        <td>
+          {% if log.action == "access" %}
+            <span class="badge badge-blue">👁 Accès</span>
+          {% elif log.action == "create" %}
+            <span class="badge badge-green">➕ Création</span>
+          {% elif log.action == "update" %}
+            <span class="badge" style="background:#fef9c3;color:#854d0e">✏️ Modif.</span>
+          {% elif log.action == "delete" %}
+            <span class="badge badge-red">🗑 Suppression</span>
+          {% elif log.action == "export" %}
+            <span class="badge" style="background:#e0e7ff;color:#3730a3">📦 Export</span>
+          {% elif log.action == "erase" %}
+            <span class="badge badge-red">⚡ Effacement</span>
+          {% elif log.action == "login" %}
+            <span class="badge badge-green">🔓 Connexion</span>
+          {% elif log.action == "logout" %}
+            <span class="badge" style="background:#f1f5f9;color:#475569">🔒 Déco.</span>
+          {% elif log.action == "breach_report" %}
+            <span class="badge" style="background:#fff7ed;color:#c2410c">⚠️ Signalement</span>
+          {% else %}
+            <span class="badge" style="background:#f1f5f9;color:#475569">{{ log.get_action_display }}</span>
+          {% endif %}
+        </td>
+        <td style="font-size:.85rem;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ log.target }}">
+          {{ log.target|default:"–" }}
+        </td>
+        <td style="font-size:.8rem;color:#94a3b8;font-family:monospace">
+          {{ log.ip_address|default:"–" }}
+        </td>
+        <td style="font-size:.8rem;color:#64748b;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ log.details }}">
+          {{ log.details|default:"–" }}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;color:#94a3b8;padding:2rem">
+          Aucune entrée dans le journal.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -13,12 +13,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Eleve, Scolarite, Sante, Parent, MedecinTraitant, Matiere, Note, UserProfile
+from .models import Eleve, Scolarite, Sante, Parent, MedecinTraitant, Matiere, Note, UserProfile, AuditLog, BreachReport
 from .forms import (
     EleveForm, ScolariteForm, SanteForm,
     ParentForm, MedecinForm, MatiereForm, NoteForm,
     UserCreateForm, UserProfileForm,
     EleveRectifyForm, ParentRectifyForm,
+    BreachReportForm,
 )
 from .serializers import (
     EleveSerializer,
@@ -42,6 +43,23 @@ def _get_profile(user):
         return user.profile
     except Exception:
         return None
+
+
+def _audit(request, action, target="", details=""):
+    """Enregistre une action dans le journal d'audit. Ne leve jamais d'exception."""
+    try:
+        ip = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", ""))
+        if ip and "," in ip:
+            ip = ip.split(",")[0].strip()
+        AuditLog.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            action=action,
+            target=str(target)[:200],
+            ip_address=ip or None,
+            details=str(details)[:1000],
+        )
+    except Exception:
+        pass
 
 
 def require_roles(*roles):
@@ -211,6 +229,7 @@ def eleve_detail(request, pk):
             notes = notes.filter(matiere__in=profile.matieres.all())
         moyenne = notes.aggregate(avg=Avg("note"))["avg"]
         notes_par_trimestre[label] = {"notes": notes, "moyenne": moyenne}
+    _audit(request, "access", target=f"Élève #{eleve.pk} – {eleve}")
     return render(request, "eleves/eleve_detail.html", {
         "eleve": eleve,
         "notes_par_trimestre": notes_par_trimestre,
@@ -233,6 +252,7 @@ def eleve_create(request):
             sante = sa_form.save(commit=False)
             sante.eleve = eleve
             sante.save()
+            _audit(request, "create", target=f"Élève #{eleve.pk} – {eleve}")
             messages.success(request, "Eleve cree avec succes.")
             return redirect("eleve_detail", pk=eleve.pk)
     return render(request, "eleves/eleve_form.html", {
@@ -258,6 +278,7 @@ def eleve_edit(request, pk):
             id_form.save()
             sc_form.save()
             sa_form.save()
+            _audit(request, "update", target=f"Élève #{pk}")
             messages.success(request, "Eleve mis a jour.")
             return redirect("eleve_detail", pk=pk)
     return render(request, "eleves/eleve_form.html", {
@@ -275,6 +296,7 @@ def eleve_edit(request, pk):
 def eleve_delete(request, pk):
     eleve = get_object_or_404(Eleve, pk=pk)
     if request.method == "POST":
+        _audit(request, "delete", target=f"Élève #{pk} – {eleve}")
         eleve.delete()
         messages.success(request, "Eleve supprime.")
         return redirect("eleve_list")
@@ -478,6 +500,7 @@ def note_create(request):
                 messages.error(request, "Vous ne pouvez ajouter des notes que pour vos matieres.")
                 return redirect("eleve_list")
         note_obj.save()
+        _audit(request, "create", target=f"Note – {note_obj.eleve} – {note_obj.matiere} T{note_obj.trimestre}")
         messages.success(request, "Note enregistree.")
         return redirect("eleve_detail", pk=note_obj.eleve.pk)
     cancel = f"/admin/eleves/{eleve_pk}/" if eleve_pk else "/admin/notes/"
@@ -506,6 +529,7 @@ def note_edit(request, pk):
         form.fields["matiere"].queryset = profile.matieres.all()
     if request.method == "POST" and form.is_valid():
         form.save()
+        _audit(request, "update", target=f"Note #{pk} – {note.eleve} – {note.matiere}")
         messages.success(request, "Note mise a jour.")
         return redirect("eleve_detail", pk=note.eleve.pk)
     return render(request, "eleves/admin_form.html", {
@@ -531,6 +555,7 @@ def note_delete(request, pk):
                           {"required": [PROFESSEUR], "user_role": role}, status=403)
     eleve_pk = note.eleve.pk
     if request.method == "POST":
+        _audit(request, "delete", target=f"Note #{pk} – {note.eleve} – {note.matiere}")
         note.delete()
         messages.success(request, "Note supprimee.")
         return redirect("eleve_detail", pk=eleve_pk)
@@ -619,6 +644,7 @@ def student_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and user.is_active:
             login(request, user)
+            _audit(request, "login", target=username)
             role = get_role(user)
             next_url = request.POST.get("next") or request.GET.get("next", "")
             if next_url:
@@ -639,6 +665,7 @@ def student_login(request):
 
 def student_logout(request):
     from django.contrib.auth import logout
+    _audit(request, "logout", target=request.user.username if request.user.is_authenticated else "")
     logout(request)
     return redirect("/students/login/")
 
@@ -656,6 +683,7 @@ def staff_login(request):
                 error = "Ce portail est réservé au personnel du lycée."
             else:
                 login(request, user)
+                _audit(request, "login", target=username)
                 next_url = request.POST.get("next") or request.GET.get("next", "")
                 return redirect(next_url if next_url else "/admin/")
         else:
@@ -667,6 +695,7 @@ def staff_login(request):
 
 def staff_logout(request):
     from django.contrib.auth import logout
+    _audit(request, "logout", target=request.user.username if request.user.is_authenticated else "")
     logout(request)
     return redirect("/admin/login/")
 
@@ -875,6 +904,8 @@ def rgpd_erase(request):
         password = request.POST.get("password", "")
         if request.user.check_password(password):
             from django.contrib.auth import logout as auth_logout
+            username = request.user.username
+            _audit(request, "erase", target=username, details="Effacement Art. 17 RGPD")
             user = request.user
             auth_logout(request)
             user.delete()
@@ -897,6 +928,7 @@ def rgpd_export(request):
     if fmt not in ("json", "csv"):
         fmt = "json"
 
+    _audit(request, "export", target=request.user.username, details=f"Format: {fmt}")
     payload = _build_rgpd_payload(request.user)
     filename_base = f"mes_donnees_{request.user.username}_{timezone.now().date().isoformat()}"
 
@@ -951,4 +983,97 @@ def rgpd_export(request):
     )
     response["Content-Disposition"] = f'attachment; filename="{filename_base}.json"'
     return response
+
+
+# ─── DPO Contact (public) ─────────────────────────────────────────────────────
+
+def dpo_contact(request):
+    """Page de contact du Délégué à la Protection des Données (DPO). Accès public."""
+    return render(request, "shared/dpo_contact.html")
+
+
+# ─── Signalement de violation de données (tous utilisateurs authentifiés) ────
+
+def breach_report(request):
+    """Permet à tout utilisateur (authentifié ou non) de signaler une violation de données."""
+    role = get_role(request.user) if request.user.is_authenticated else None
+    submitted = False
+
+    if request.method == "POST":
+        form = BreachReportForm(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            if request.user.is_authenticated:
+                report.reporter = request.user
+            report.save()
+            if request.user.is_authenticated:
+                _audit(request, "breach_report",
+                       target=f"Signalement #{report.pk}",
+                       details=form.cleaned_data["description"][:300])
+            submitted = True
+            form = None
+    else:
+        form = BreachReportForm()
+
+    return render(request, "shared/breach_report.html", {
+        "form": form,
+        "submitted": submitted,
+        "role": role,
+    })
+
+
+# ─── Journal d'audit (admin uniquement) ──────────────────────────────────────
+
+@require_roles(ADMIN)
+def audit_log_list(request):
+    """Journal d'audit complet – réservé aux administrateurs."""
+    action_filter = request.GET.get("action", "")
+    username_filter = request.GET.get("username", "").strip()
+
+    logs = AuditLog.objects.select_related("user").order_by("-timestamp")
+    if action_filter:
+        logs = logs.filter(action=action_filter)
+    if username_filter:
+        logs = logs.filter(user__username__icontains=username_filter)
+    logs = logs[:500]
+
+    return render(request, "admin/audit_log.html", {
+        "logs": logs,
+        "action_choices": AuditLog.ACTION_CHOICES,
+        "action_filter": action_filter,
+        "username_filter": username_filter,
+        "user_role": ADMIN,
+        "total": len(logs),
+    })
+
+
+@require_roles(ADMIN)
+def breach_report_list(request):
+    """Liste des signalements de violation – réservée aux administrateurs."""
+    status_filter = request.GET.get("status", "")
+    reports = BreachReport.objects.select_related("reporter").order_by("-submitted_at")
+    if status_filter:
+        reports = reports.filter(status=status_filter)
+
+    if request.method == "POST":
+        pk = request.POST.get("pk")
+        new_status = request.POST.get("status")
+        admin_notes = request.POST.get("admin_notes", "")
+        if pk and new_status in dict(BreachReport.STATUS_CHOICES):
+            rpt = get_object_or_404(BreachReport, pk=pk)
+            rpt.status = new_status
+            rpt.admin_notes = admin_notes
+            rpt.save()
+            _audit(request, "update", target=f"Signalement #{pk}",
+                   details=f"Statut → {new_status}")
+            messages.success(request, "Signalement mis à jour.")
+            return redirect("breach_report_list")
+
+    return render(request, "admin/breach_reports.html", {
+        "reports": reports,
+        "status_choices": BreachReport.STATUS_CHOICES,
+        "status_filter": status_filter,
+        "user_role": ADMIN,
+    })
+
 

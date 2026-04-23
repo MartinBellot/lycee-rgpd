@@ -226,6 +226,76 @@ class UserProfile(models.Model):
         return self.role in STAFF_ROLES
 
 
+# ─── Journal d'audit ─────────────────────────────────────────────────────────
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = [
+        ("access",        "Accès"),
+        ("create",        "Création"),
+        ("update",        "Modification"),
+        ("delete",        "Suppression"),
+        ("export",        "Export (portabilité)"),
+        ("erase",         "Effacement (Art. 17)"),
+        ("login",         "Connexion"),
+        ("logout",        "Déconnexion"),
+        ("breach_report", "Signalement de violation"),
+    ]
+
+    user = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="audit_logs", verbose_name="Utilisateur",
+    )
+    action = models.CharField(
+        max_length=20, choices=ACTION_CHOICES, verbose_name="Action",
+    )
+    target = models.CharField(max_length=200, blank=True, verbose_name="Cible")
+    ip_address = models.GenericIPAddressField(
+        null=True, blank=True, verbose_name="Adresse IP",
+    )
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Horodatage")
+    details = models.TextField(blank=True, verbose_name="Détails")
+
+    class Meta:
+        ordering = ["-timestamp"]
+        verbose_name = "Journal d'audit"
+        verbose_name_plural = "Journal d'audit"
+
+    def __str__(self):
+        username = self.user.username if self.user else "anonyme"
+        return f"[{self.timestamp:%Y-%m-%d %H:%M}] {username} – {self.get_action_display()} – {self.target}"
+
+
+# ─── Signalement de violation de données ─────────────────────────────────────
+
+class BreachReport(models.Model):
+    STATUS_CHOICES = [
+        ("pending",       "En attente"),
+        ("investigating", "En cours d'enquête"),
+        ("resolved",      "Résolu"),
+        ("dismissed",     "Classé sans suite"),
+    ]
+
+    reporter = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="breach_reports", verbose_name="Rapporteur",
+    )
+    description = models.TextField(verbose_name="Description de la violation suspectée")
+    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="Soumis le")
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending", verbose_name="Statut",
+    )
+    admin_notes = models.TextField(blank=True, verbose_name="Notes administration")
+
+    class Meta:
+        ordering = ["-submitted_at"]
+        verbose_name = "Signalement de violation"
+        verbose_name_plural = "Signalements de violation"
+
+    def __str__(self):
+        reporter = self.reporter.username if self.reporter else "anonyme"
+        return f"Signalement #{self.pk} – {reporter} – {self.submitted_at:%Y-%m-%d}"
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """Crée automatiquement un UserProfile pour chaque nouvel utilisateur."""

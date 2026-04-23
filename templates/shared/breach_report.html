@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signalement de violation – Lycée RGPD</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f4f8; color: #1a202c; min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+      color: #fff; padding: 1rem 2rem;
+      display: flex; align-items: center; gap: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    header a { color: rgba(255,255,255,.8); text-decoration: none; font-size: .9rem; }
+    header a:hover { color: #fff; }
+    header .spacer { flex: 1; }
+    .container { max-width: 680px; margin: 2.5rem auto; padding: 0 1.5rem; }
+    .card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.08); padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1.15rem; color: #1e3a5f; margin-bottom: 1rem;
+               border-bottom: 2px solid #e2e8f0; padding-bottom: .5rem; }
+    .field-group { margin-bottom: 1.2rem; }
+    label { display: block; font-weight: 600; font-size: .875rem;
+            color: #475569; margin-bottom: .35rem; }
+    textarea {
+      width: 100%; padding: .65rem .9rem; border: 1.5px solid #d1d5db;
+      border-radius: 8px; font-size: .9rem; font-family: inherit;
+      resize: vertical; min-height: 140px; outline: none; transition: border-color .2s;
+    }
+    textarea:focus { border-color: #2563eb; }
+    .help-text { font-size: .8rem; color: #94a3b8; margin-top: .3rem; }
+    .error-list { color: #991b1b; font-size: .85rem; margin-top: .3rem; list-style: disc; padding-left: 1.2rem; }
+    .btn {
+      padding: .7rem 1.5rem; border: none; border-radius: 8px;
+      font-size: .95rem; font-weight: 600; cursor: pointer;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #fff; transition: opacity .2s;
+    }
+    .btn:hover { opacity: .88; }
+    .info-box {
+      background: #fff7ed; border-left: 4px solid #f59e0b;
+      border-radius: 6px; padding: .9rem 1rem;
+      font-size: .875rem; color: #92400e; margin-bottom: 1.5rem;
+    }
+    .info-box ul { padding-left: 1.2rem; margin-top: .4rem; }
+    .info-box li { margin-bottom: .2rem; }
+    .success-box {
+      background: #d1fae5; border-left: 4px solid #10b981;
+      border-radius: 8px; padding: 1.5rem; text-align: center;
+    }
+    .success-box h2 { color: #065f46; font-size: 1.3rem; margin-bottom: .5rem; }
+    .success-box p { color: #047857; font-size: .9rem; }
+    .success-box a { color: #065f46; font-weight: 600; text-decoration: none; }
+    .success-box a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>🏫 Lycée RGPD</strong>
+    <span style="opacity:.5">|</span>
+    <span>Signalement de violation</span>
+    <span class="spacer"></span>
+    <a href="/dpo/">← Contact DPO</a>
+  </header>
+
+  <div class="container">
+
+    {% if submitted %}
+    <div class="success-box">
+      <h2>✅ Signalement enregistré</h2>
+      <p>Votre signalement a bien été transmis au Délégué à la Protection des Données.<br>
+      Le DPO vous contactera sous <strong>72 heures</strong> si des mesures immédiates sont nécessaires
+      (délai RGPD Art. 33).</p>
+      <br>
+      <a href="/dpo/">Retour à la page DPO</a>
+    </div>
+
+    {% else %}
+
+    <div class="info-box">
+      <strong>⚠️ Quand signaler une violation de données ?</strong>
+      <ul>
+        <li>Vous avez constaté un accès à vos données par une personne non autorisée</li>
+        <li>Vos données semblent avoir été modifiées sans votre consentement</li>
+        <li>Vous avez reçu des informations ne vous appartenant pas</li>
+        <li>Vous suspectez une fuite ou un vol de données</li>
+        <li>Une erreur système a exposé des données confidentielles</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>⚠️ Décrire la violation suspectée</h2>
+      {% if user.is_authenticated %}
+        <p style="font-size:.85rem;color:#64748b;margin-bottom:1rem">
+          Connecté en tant que <strong>{{ user.get_full_name|default:user.username }}</strong>
+          — votre identifiant sera associé au signalement.
+        </p>
+      {% else %}
+        <p style="font-size:.85rem;color:#64748b;margin-bottom:1rem">
+          Vous n'êtes pas connecté — le signalement sera enregistré anonymement.
+          Pensez à laisser vos coordonnées dans le message si vous souhaitez être recontacté.
+        </p>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="field-group">
+          <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+          {{ form.description }}
+          {% if form.description.help_text %}
+            <p class="help-text">{{ form.description.help_text }}</p>
+          {% endif %}
+          {% if form.description.errors %}
+            <ul class="error-list">
+              {% for e in form.description.errors %}<li>{{ e }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        <button type="submit" class="btn">📨 Envoyer le signalement</button>
+      </form>
+    </div>
+
+    <p style="font-size:.8rem;color:#94a3b8;text-align:center">
+      En cas d'urgence ou de violation grave, vous pouvez également contacter la
+      <a href="https://www.cnil.fr" target="_blank" rel="noopener" style="color:#2563eb">CNIL</a>
+      directement (Art. 77 RGPD).
+    </p>
+
+    {% endif %}
+
+  </div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Eleve, Scolarite, Sante, Parent, MedecinTraitant, Matiere, Note, UserProfile
+from .models import Eleve, Scolarite, Sante, Parent, MedecinTraitant, Matiere, Note, UserProfile, BreachReport
 
 
 class StyledFormMixin:
@@ -181,4 +181,24 @@ class ParentRectifyForm(StyledFormMixin, forms.ModelForm):
         labels = {
             "email": "Adresse e-mail",
             "telephone": "Téléphone",
+        }
+
+
+class BreachReportForm(StyledFormMixin, forms.ModelForm):
+    """Formulaire de signalement d'une violation de données personnelles."""
+
+    class Meta:
+        model = BreachReport
+        fields = ["description"]
+        widgets = {
+            "description": forms.Textarea(attrs={
+                "rows": 6,
+                "placeholder": "Décrivez ce que vous avez observé : date approximative, type de données concernées, comment vous l'avez découvert...",
+            }),
+        }
+        labels = {
+            "description": "Description de ce que vous avez observé",
+        }
+        help_texts = {
+            "description": "Toutes les informations que vous pouvez fournir nous aideront à traiter votre signalement rapidement.",
         }

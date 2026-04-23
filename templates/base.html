@@ -187,7 +187,10 @@
     <a href="/api/">API REST</a>
     {% if user.profile.role == 'admin' or user.is_superuser %}
     <a href="/django-admin/" style="opacity:.7;font-size:.8rem">⚙ Django Admin</a>
+    <a href="{% url 'audit_log' %}" style="font-size:.8rem;opacity:.85">📋 Audit</a>
+    <a href="{% url 'breach_report_list' %}" style="font-size:.8rem;opacity:.85">⚠️ Signalements</a>
     {% endif %}
+    <a href="{% url 'dpo_contact' %}" style="font-size:.8rem;opacity:.85">🛡️ DPO</a>
     <span class="spacer"></span>
     {% if user.is_authenticated %}
       <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:.15rem .6rem;font-size:.75rem;font-weight:600">

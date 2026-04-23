@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact DPO – Lycée RGPD</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f4f8; color: #1a202c; min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+      color: #fff; padding: 1rem 2rem;
+      display: flex; align-items: center; gap: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    header a { color: rgba(255,255,255,.8); text-decoration: none; font-size: .9rem; }
+    header a:hover { color: #fff; }
+    header .spacer { flex: 1; }
+    .container { max-width: 720px; margin: 2.5rem auto; padding: 0 1.5rem; }
+    .card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.08); padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1.15rem; color: #1e3a5f; margin-bottom: 1.2rem;
+               border-bottom: 2px solid #e2e8f0; padding-bottom: .5rem; }
+    dl { display: grid; grid-template-columns: 160px 1fr; gap: .5rem 1rem; }
+    dt { font-weight: 600; color: #64748b; font-size: .875rem; }
+    dd { color: #1a202c; font-size: .875rem; }
+    .badge-dpo {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+      border-radius: 8px; padding: .5rem 1rem; font-size: .9rem;
+      font-weight: 600; margin-bottom: 1.5rem;
+    }
+    .rights-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .right-item {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 1rem;
+    }
+    .right-item .art { font-size: .75rem; font-weight: 700; color: #2563eb;
+                       text-transform: uppercase; letter-spacing: .05em; }
+    .right-item h3 { font-size: .95rem; color: #1e3a5f; margin: .3rem 0 .4rem; }
+    .right-item p { font-size: .85rem; color: #64748b; line-height: 1.5; }
+    .right-item a { color: #2563eb; text-decoration: none; font-weight: 600; font-size: .85rem; }
+    .right-item a:hover { text-decoration: underline; }
+    .info-box {
+      background: #fef9c3; border-left: 4px solid #f59e0b; border-radius: 6px;
+      padding: .9rem 1rem; font-size: .875rem; color: #854d0e;
+    }
+    .breach-cta {
+      background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px;
+      padding: 1.2rem; display: flex; align-items: center; gap: 1rem;
+    }
+    .breach-cta .icon { font-size: 2rem; }
+    .breach-cta p { font-size: .875rem; color: #9a3412; margin-bottom: .5rem; }
+    .breach-cta a {
+      display: inline-block; background: #ea580c; color: #fff; border-radius: 6px;
+      padding: .45rem 1rem; font-size: .875rem; font-weight: 600; text-decoration: none;
+    }
+    .breach-cta a:hover { background: #c2410c; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>🏫 Lycée RGPD</strong>
+    <span style="opacity:.5">|</span>
+    <span>Délégué à la Protection des Données</span>
+    <span class="spacer"></span>
+    {% if user.is_authenticated %}
+      {% if user.profile.role in 'admin,scolarite,professeur,vie_scolaire,infirmier,cantine' %}
+        <a href="/admin/">← Portail admin</a>
+      {% else %}
+        <a href="/students/">← Mon espace</a>
+      {% endif %}
+    {% else %}
+      <a href="/students/login/">← Connexion</a>
+    {% endif %}
+  </header>
+
+  <div class="container">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem">
+      <div class="badge-dpo">🛡️ Délégué à la Protection des Données (DPO)</div>
+    </div>
+
+    <div class="card">
+      <h2>📬 Coordonnées du référent RGPD</h2>
+      <dl>
+        <dt>Nom</dt>         <dd>M. Jean-Pierre Lefèvre</dd>
+        <dt>Fonction</dt>    <dd>Délégué à la Protection des Données (DPO)</dd>
+        <dt>Établissement</dt> <dd>Lycée RGPD – 12 avenue de la République, 75011 Paris</dd>
+        <dt>Email</dt>       <dd><a href="mailto:dpo@lycee-rgpd.fr">dpo@lycee-rgpd.fr</a></dd>
+        <dt>Téléphone</dt>   <dd>01 23 45 67 89 (lun–ven, 9h–17h)</dd>
+        <dt>Courrier</dt>    <dd>À l'attention du DPO – confidentiel</dd>
+      </dl>
+
+      <div class="info-box" style="margin-top:1.2rem">
+        ⏱ Le DPO dispose d'un délai d'<strong>un mois</strong> pour répondre à toute demande
+        (Art. 12 RGPD). Ce délai peut être prolongé de deux mois supplémentaires pour les
+        demandes complexes ou nombreuses.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚖️ Vos droits sur vos données personnelles</h2>
+      <div class="rights-grid">
+        <div class="right-item">
+          <div class="art">Art. 15 RGPD</div>
+          <h3>🔍 Droit d'accès</h3>
+          <p>Consultez l'ensemble des données personnelles que nous détenons sur vous.</p>
+          {% if user.is_authenticated %}
+            <a href="/students/rgpd/">Voir mes données →</a>
+          {% endif %}
+        </div>
+        <div class="right-item">
+          <div class="art">Art. 16 RGPD</div>
+          <h3>✏️ Droit de rectification</h3>
+          <p>Corrigez vos coordonnées (email, téléphone, adresse).</p>
+          {% if user.is_authenticated %}
+            <a href="/students/rgpd/rectifier/">Rectifier →</a>
+          {% endif %}
+        </div>
+        <div class="right-item">
+          <div class="art">Art. 17 RGPD</div>
+          <h3>🗑 Droit à l'effacement</h3>
+          <p>Demandez la suppression de votre compte utilisateur.</p>
+          {% if user.is_authenticated %}
+            <a href="/students/rgpd/effacer/">Effacer mon compte →</a>
+          {% endif %}
+        </div>
+        <div class="right-item">
+          <div class="art">Art. 20 RGPD</div>
+          <h3>📦 Droit à la portabilité</h3>
+          <p>Exportez vos données dans un format lisible par machine.</p>
+          {% if user.is_authenticated %}
+            <a href="/students/rgpd/exporter/?format=json">Export JSON →</a>
+          {% endif %}
+        </div>
+        <div class="right-item">
+          <div class="art">Art. 21 RGPD</div>
+          <h3>🚫 Droit d'opposition</h3>
+          <p>Opposez-vous à certains traitements. Contactez le DPO par email ou courrier.</p>
+        </div>
+        <div class="right-item">
+          <div class="art">Art. 77 RGPD</div>
+          <h3>📣 Droit de réclamation</h3>
+          <p>Si votre demande n'est pas traitée, vous pouvez saisir la <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="breach-cta">
+      <div class="icon">⚠️</div>
+      <div>
+        <p><strong>Vous avez constaté quelque chose d'anormal concernant vos données ?</strong><br>
+        Accès non autorisé, données incorrectes, fuite supposée…</p>
+        <a href="/dpo/signalement/">Signaler une violation →</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
