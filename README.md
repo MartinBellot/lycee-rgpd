@@ -191,7 +191,100 @@ RGPD/
 
 ---
 
-## Conformité RGPD
+## Droits RGPD des utilisateurs (Art. 15, 16, 17, 20)
+
+Les quatre droits fondamentaux du RGPD sont accessibles depuis le portail élèves/parents via le menu **"🔍 Mes données"** ou les raccourcis sur les tableaux de bord.
+
+---
+
+### Droit d'accès aux données — Art. 15
+
+**URL :** `GET /students/rgpd/`
+
+Affiche l'ensemble des données personnelles détenues par l'établissement, regroupées par catégorie :
+
+| Profil | Données affichées |
+|---|---|
+| **Élève** | Identité (nom, prénom, date de naissance, email, téléphone, adresse), scolarité (classe, options), liste complète des notes avec matière, coefficient, trimestre, appréciation |
+| **Parent** | Coordonnées (email, téléphone), liste des enfants avec leur classe |
+
+> Accessible uniquement à l'utilisateur connecté (`@login_required`). Chaque utilisateur ne voit que ses propres données.
+
+---
+
+### Droit de rectification — Art. 16
+
+**URL :** `GET / POST /students/rgpd/rectifier/`
+
+Permet de corriger les coordonnées de contact. Les champs éditables sont volontairement limités aux données de contact — les données d'identité officielle (nom, prénom, date de naissance) et les données scolaires ne peuvent être modifiées que par le personnel habilité.
+
+| Profil | Champs modifiables |
+|---|---|
+| **Élève** | Email, téléphone, adresse |
+| **Parent** | Email, téléphone |
+
+Formulaires dédiés : `EleveRectifyForm`, `ParentRectifyForm` (définis dans `eleves/forms.py`).
+
+---
+
+### Droit à l'effacement — Art. 17
+
+**URL :** `GET / POST /students/rgpd/effacer/`
+
+Supprime le compte de connexion après confirmation par mot de passe.
+
+**Ce qui est supprimé :**
+- Le compte utilisateur Django (`User`)
+- Le profil de rôle (`UserProfile`)
+- La session active (déconnexion immédiate)
+
+**Ce qui est conservé** (obligation légale — Art. 6 §1 e RGPD) :
+- La fiche élève (`Eleve`) et son dossier scolaire
+- La fiche parent (`Parent`)
+- Les notes et bulletins
+
+Après suppression, l'utilisateur est redirigé vers `/students/login/?effacement=ok` avec un message de confirmation.
+
+> **Sécurité :** la référence à `request.user` est sauvegardée avant l'appel à `logout()`, afin d'éviter que `request.user` devienne `AnonymousUser` avant la suppression.
+
+---
+
+### Droit à la portabilité — Art. 20
+
+**URL :** `GET /students/rgpd/exporter/?format=json` ou `?format=csv`
+
+Génère un téléchargement structuré et lisible par machine de toutes les données personnelles.
+
+#### Format JSON
+```json
+{
+  "compte": { "username": "lucas.eleve", "date_inscription": "..." },
+  "identite": { "nom": "Bernard", "prenom": "Hugo", ... },
+  "scolarite": { "classe": "Terminale S", "options": "..." },
+  "notes": [
+    { "matiere": "Mathematiques", "coefficient": 4, "trimestre": "T1",
+      "note": 15.5, "appreciation": "Bon travail", "date": "2025-11-10" }
+  ]
+}
+```
+
+#### Format CSV
+Fichier tabulaire avec sections séparées par des lignes vides :
+
+```
+Section,Champ,Valeur
+Identite,Nom,Bernard
+Identite,Prenom,Hugo
+...
+Notes,Matiere,Coefficient,Trimestre,Note /20,Appreciation,Date
+Notes,Mathematiques,4,T1,15.5,Bon travail,2025-11-10
+```
+
+Le nom de fichier téléchargé suit le format `rgpd_<username>_<date>.<ext>`.
+
+---
+
+
 
 | Principe | Implémentation |
 |---|---|
