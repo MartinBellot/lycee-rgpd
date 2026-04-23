@@ -162,44 +162,6 @@ Huit rôles définis dans `eleves/roles.py` :
 
 ---
 
-## Structure du projet
-
-```
-RGPD/
-├── lycee/
-│   ├── settings.py          # Configuration Django
-│   ├── urls.py              # Routage principal
-│   └── admin_site.py        # LyceeAdminSite (accès restreint admin)
-├── eleves/
-│   ├── models.py            # Eleve, Scolarite, Sante, Parent, Matiere, Note, UserProfile
-│   ├── roles.py             # Constantes de rôles + helpers
-│   ├── permissions.py       # Classes de permission DRF
-│   ├── forms.py             # Formulaires métier + UserCreateForm + UserProfileForm
-│   ├── views.py             # Toutes les vues (staff + students portal)
-│   ├── serializers.py       # Sérialiseurs DRF
-│   ├── urls.py              # Toutes les routes
-│   └── migrations/
-│       ├── 0001_initial.py
-│       └── 0002_add_user_profile.py
-└── templates/
-    ├── base.html            # Layout staff (navbar role-aware)
-    ├── eleves/              # Templates portail staff
-    │   ├── dashboard.html
-    │   ├── eleve_list.html
-    │   ├── eleve_detail.html   # Conditionnel selon le rôle
-    │   ├── access_denied.html
-    │   ├── user_list.html
-    │   └── user_form.html
-    └── students/            # Templates portail élèves/parents
-        ├── base.html
-        ├── login.html
-        ├── eleve_dashboard.html
-        ├── parent_dashboard.html
-        └── child_bulletin.html
-```
-
----
-
 ## Contact DPO, Signalement et Journalisation
 
 ### Contact DPO (Délégué à la Protection des Données)
